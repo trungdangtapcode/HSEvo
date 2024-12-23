@@ -1,7 +1,7 @@
 # HSEvo: Elevating Automatic Heuristic Design with Diversity-Driven Harmony Search and Genetic Algorithm Using LLMs
 
 Welcome to **HSEvo** — the code implementation from the paper:
-**HSEvo: Elevating Automatic Heuristic Design with Diversity-Driven Harmony Search and Genetic Algorithm Using LLMs**.
+[**HSEvo: Elevating Automatic Heuristic Design with Diversity-Driven Harmony Search and Genetic Algorithm Using LLMs**](https://arxiv.org/abs/2412.14995).
 
 We don’t just talk the talk (in large language models), we walk the walk (in evolutionary leaps).
 
