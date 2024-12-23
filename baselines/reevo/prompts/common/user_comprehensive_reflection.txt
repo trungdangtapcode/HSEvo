@@ -1,0 +1,16 @@
+### Good self-reflections
+Here is synthesis of effective self-reflections:
+{good_reflection}
+
+### Bad self-reflection
+Here is synthesis of ineffective self-reflections:
+{bad_reflection}
+
+### Current self-reflection
+Here is synthesis of current self-reflections:
+{curr_reflection}
+
+Let's synthesize Current self-reflection and Good self-reflections, paying attention to avoid Bad self-reflection, in order to come up with ideas to design better heuristics.
+Response (<100 words) should have 4 bullet points: Keywords, Advice, Avoid, Explanation.
+
+I'm going to tip $999K for a better heuristics! Let's think step by step.

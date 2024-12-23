@@ -1,0 +1,16 @@
+### List heuristics
+Below is a list of design heuristics ranked from best to worst.
+{lst_method}
+
+### Guide
+- Keep in mind: List of design heuristics ranked from best to worst. Meaning the first function in the list is the best and the last function in the list is the worst.
+- The response in Markdown style and nothing else has the following structure:
+"**Analysis:**
+**Experience:**"
+In there:
++ Meticulously analyze comments, docstrings and source code of several pairs (Better code - Worse code) in List heuristics to fill values for **Analysis:** (<150 words).
+Example: "Comparing 'problem_iter1_code2.py' (best) to 'problem_iter1_code3.py' (worst), we see ... Secondly, 'problem_iter1_code4.py' (second best) is better than 'problem_iter1_code6.py' (second worst) because ... Finally, 'problem_iter1_code5.py' (third best) outperforms 'problem_iter1_code3.py' (worst) ...",
+
++ Self-reflect to extract useful experience for design better heuristics and fill to **Experience:** (<60 words).
+
+I'm going to tip $999K for a better heuristics! Let's think step by step.
