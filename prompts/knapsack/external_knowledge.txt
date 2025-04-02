@@ -1,0 +1,2 @@
+- Introduce sparsification by ignoring items that contribute minimally to overall utility.
+- Incorporate additional features such as remaining capacity and item density.

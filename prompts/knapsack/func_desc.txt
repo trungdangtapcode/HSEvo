@@ -1,0 +1,1 @@
+The `heuristics` function takes as input a list of item values and weights, as well as the total knapsack capacity. The return should be a NumPy array of the same length as the input lists. Value is 0 or 1, meaning take or not take the i-th item
