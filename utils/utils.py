@@ -101,7 +101,7 @@ def multi_chat_completion(messages_list: list[list[dict]], n, model, temperature
 import requests
 import time
 
-OLLAMA_API_URL = "https://2947-35-230-14-41.ngrok-free.app/api/chat"  # Ollama runs locally by default
+OLLAMA_API_URL = "https://177a-35-247-17-24.ngrok-free.app/api/chat"  # Ollama runs locally by default
 from types import SimpleNamespace
 def dict_to_object(dictionary):
     return SimpleNamespace(**{k: dict_to_object(v) if isinstance(v, dict) else v for k, v in dictionary.items()})
@@ -283,7 +283,7 @@ def count_logical_nodes_and_complexity(code: str):
 
     total_nodes, complexity = traverse(root_node)
     # Base complexity is 1
-    return total_nodes, complexity + 1
+    return (total_nodes/500, (complexity + 1)/15)
 
 
 def remove_comments_and_docstrings(code):
@@ -324,3 +324,6 @@ def remove_comments_and_docstrings(code):
     cleaned_lines = [line for line in lines if line.strip() != '']
 
     return '\n'.join(cleaned_lines)
+
+def get_behavior(code):
+    return count_logical_nodes_and_complexity(remove_comments_and_docstrings(code))

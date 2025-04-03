@@ -126,12 +126,17 @@ if __name__ == "__main__":
         for dataname in sorted(listdir(basepath))[:50]:
             data_path = path.join(basepath, dataname)
             values, weights, capacities = read_knapsack_file(data_path)
+
+            solver.init(values, weights, [capacities])
+            computed_value = solver.solve()
+
             values = np.expand_dims(values,axis=0)
             weights = np.array(weights)
             items = np.concatenate([values, weights], axis = 0).T
             n = items.shape[0]
             obj = solve(n, capacities, items)
-            objs.append(obj)
+
+            objs.append(obj/(computed_value+1e-8))
         print("[*] Average:")
         print(np.mean(objs))
             

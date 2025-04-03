@@ -6,6 +6,8 @@ from datetime import datetime
 from utils.utils import *
 from baselines.reevo.gls_tsp_adapt.gls_tsp_eval import Sandbox
 
+from utils.archive import MAPElitesArchive
+
 # import resource
 # import os
 
@@ -30,6 +32,9 @@ class HSEvo:
 
         self.problem = self.cfg.problem.problem_name
         self.isQD = self.problem.startswith("QD")
+        if self.isQD:
+            self.archive = MAPElitesArchive(2, 10)
+            pass
         self.problem_desc = self.cfg.problem.description
         self.problem_size = self.cfg.problem.problem_size
         self.func_name = self.cfg.problem.func_name
@@ -63,6 +68,7 @@ class HSEvo:
         self.system_generator_prompt = file_to_string(f'{self.prompt_dir}/common/system_generator.txt')
         self.system_reflector_prompt = file_to_string(f'{self.prompt_dir}/common/system_reflector.txt')
         self.crossover_prompt = file_to_string(f'{self.prompt_dir}/common/crossover.txt')
+        self.crossover_prompt_two_elites = file_to_string(f'{self.prompt_dir}/common/crossover_two_elites.txt')
         self.mutation_prompt = file_to_string(f'{self.prompt_dir}/common/mutation.txt')
         self.user_generator_prompt = file_to_string(f'{self.prompt_dir}/common/user_generator.txt')
         self.seed_prompt = file_to_string(f'{self.prompt_dir}/common/seed.txt').format(
@@ -119,6 +125,7 @@ class HSEvo:
             "code_path": f"problem_iter{self.iteration}_code0.py",
             "code": code,
             "response_id": 0,
+            "behavior": get_behavior(code) if self.isQD else None,
         }
         self.seed_ind = seed_ind
         self.population = self.evaluate_population([seed_ind])
@@ -192,6 +199,7 @@ class HSEvo:
             "code": code,
             "response_id": response_id,
             "tryHS": False,
+            "behavior": get_behavior(code) if self.isQD else None,
         }
         return individual
 
@@ -266,6 +274,7 @@ class HSEvo:
                 if run_ok:
                     try:
                         individual["obj"] = float(result) if self.obj_type == "min" else -float(result)
+                        # self.archive.add(individual, individual["obj"], individual["behavior"]) if self.isQD else None
                         individual["exec_success"] = True
                     except:
                         population[response_id] = self.mark_invalid_individual(population[response_id],
@@ -286,7 +295,9 @@ class HSEvo:
                 # print(stdout_filepath)
                 with open(stdout_filepath, 'r') as f:  # read the stdout file
                     stdout_str = f.read()
-                print('stdout:',stdout_str)
+
+                # print('stdout:',stdout_str)
+
                 traceback_msg = filter_traceback(stdout_str)
 
                 if traceback_msg == '':  # If execution has no error
@@ -300,13 +311,17 @@ class HSEvo:
                 else:  # Otherwise, also provide execution traceback error feedback
                     population[response_id] = self.mark_invalid_individual(population[response_id], traceback_msg)
 
-                exit(0)
+                # print("CWD:",os.getcwd())
+                self.archive.add(individual, individual["obj"], individual["behavior"]) if self.isQD else None
+                # exit(0)
             if hs_try_idx is None:
                 logging.info(
                     f"Iteration {self.iteration}, response_id {response_id}: Objective value: {individual['obj']}")
             else:
                 logging.info(f"Iteration {self.iteration}, hs_try {hs_try_idx}: Objective value: {individual['obj']}")
 
+        # self.archive.save_img()
+        
         return population
 
     def _run_code(self, individual: dict, response_id) -> subprocess.Popen:
@@ -467,17 +482,21 @@ class HSEvo:
         with open(file_name, 'w') as file:
             file.writelines(self.str_comprehensive_memory)
 
-    def crossover(self, population: list[dict]) -> list[dict]:
+    def crossover(self, population: list[dict], two_elists = False) -> list[dict]:
         messages_lst = []
         num_choice = 0
         for i in range(0, len(population), 2):
             # Select two individuals
-            if population[i]["obj"] < population[i + 1]["obj"]:
-                parent_1 = population[i]
-                parent_2 = population[i + 1]
+            if two_elists:
+                parent_1 = self.archive.sample_elite()[0]
+                parent_2 = self.archive.sample_elite()[0]
             else:
-                parent_1 = population[i + 1]
-                parent_2 = population[i]
+                if population[i]["obj"] < population[i + 1]["obj"]:
+                    parent_1 = population[i]
+                    parent_2 = population[i + 1]
+                else:
+                    parent_1 = population[i + 1]
+                    parent_2 = population[i]
 
             # Crossover
             system = self.system_generator_prompt.format(seed=self.scientists[0])
@@ -489,7 +508,8 @@ class HSEvo:
                 problem_desc=self.problem_desc,
                 func_desc=self.func_desc,
             )
-            user = self.crossover_prompt.format(
+            crossover_prompt = self.crossover_prompt if not two_elists else self.crossover_prompt_two_elites
+            user = crossover_prompt.format(
                 user_generator=user_generator_prompt_full,
                 func_signature_m1=func_signature_m1,
                 func_signature_m2=func_signature_m2,
@@ -524,7 +544,7 @@ class HSEvo:
         assert len(crossed_population) == self.cfg.pop_size
         return crossed_population
 
-    def mutate(self) -> list[dict]:
+    def mutate(self, behavior_diversity = False) -> list[dict]:
         """Elitist-based mutation. We only mutate the best individual to generate n_pop new individuals."""
         system = self.system_generator_prompt.format(seed=self.scientists[0])
         func_signature1 = self.func_signature.format(version=1)
@@ -539,7 +559,7 @@ class HSEvo:
             user_generator=user_generator_prompt_full,
             reflection=self.str_comprehensive_memory,
             func_signature1=func_signature1,
-            elitist_code=filter_code(self.elitist["code"]),
+            elitist_code=filter_code(self.elitist["code"] if not behavior_diversity else self.archive.sample_elite()[0]["code"]),
             func_name=self.func_name,
         )
 
@@ -689,14 +709,14 @@ class HSEvo:
             curr_code_path = self.elitist["code_path"]
 
             # Crossover
-            crossed_population = self.crossover(selected_population)
+            crossed_population = self.crossover(selected_population, two_elists=np.random.rand() < 0.5)
             # Evaluate
             self.population = self.evaluate_population(crossed_population)
             # Update
             self.update_iter()
 
             # Mutate
-            mutated_population = self.mutate()
+            mutated_population = self.mutate(np.random.rand() < 0.7)
             # Evaluate
             self.population.extend(self.evaluate_population(mutated_population))
             # Update
@@ -720,5 +740,6 @@ class HSEvo:
                 else:
                     try_hs_num -= 1
             self.update_iter()
+            self.archive.save_img()
 
         return self.best_code_overall, self.best_code_path_overall
