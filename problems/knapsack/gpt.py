@@ -1,21 +1,26 @@
 import numpy as np
-
-def heuristics_v2(num_items, capacity, items):
-    """
-    :param num_items: Number of items
-    :param capacity: Capacity of the knapsack
-    :param items: List of tuples (value, weight) with shape (num_items, 2)
-    :return: Total value of the selected items
-    """
-    total_value = 0
-    total_weight = 0
+import random
+import math
+import scipy
+import torch
+def heuristics_v2(num_items: int, capacity: int, items: np.ndarray) -> np.ndarray:
+    # items: ndarray of shape (num_items, 2), with columns [value, weight]
     
-    res = []
-    for value, weight in items:
+    # Compute value-to-weight ratio and store original indices
+    indices = np.arange(num_items)
+    ratios = items[:, 0] / items[:, 1]
+    
+    # Sort by ratio descending
+    sorted_indices = np.argsort(-ratios)
+    
+    total_weight = 0
+    res = np.zeros(num_items, dtype=int)
+    
+    for idx in sorted_indices:
+        value, weight = items[idx]
         if total_weight + weight <= capacity:
             total_weight += weight
-            total_value += value
-            res.append(1)
-        else: res.append(0)
+            res[idx] = 1
     
-    return np.array(res)
+    return res
+

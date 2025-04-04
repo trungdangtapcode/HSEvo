@@ -1,0 +1,18 @@
+import numpy as np
+import random
+import math
+import scipy
+import torch
+def heuristics_v2(num_items: int, capacity: int, items: np.ndarray) -> np.ndarray:
+    total_value = 0
+    total_weight = 0
+    
+    res = []
+    for value, weight in items:
+        if total_weight + weight <= capacity:
+            total_weight += weight
+            total_value += value
+            res.append(1)
+        else: res.append(0)
+    
+    return np.array(res)

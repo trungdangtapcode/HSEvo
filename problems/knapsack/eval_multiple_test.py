@@ -68,7 +68,7 @@ def heuristic2(num_items, capacity, items):
     
     return np.array(res)
 
-def read_knapsack_file(filename):
+def read_knapsack_file(filename, nlim, rlim):
     packed_items = []
     packed_weights = []
     total_weight = 0
@@ -76,16 +76,21 @@ def read_knapsack_file(filename):
     with open(filename, 'r') as f:
         f.readline()
         n = int(f.readline().strip())  # Read number of items
+        assert n%rlim == 0 and n%nlim == 0, "n must be divisible by rlim and nlim"
         c = int(f.readline().strip())  # Read capacity
         f.readline()
         
         for line in f:
             p, w = map(int, line.split())
+            w *= n//rlim
+            p *= n//rlim
             packed_items.append(p)
             packed_weights.append(w)
             total_weight += w
 
-    return packed_items, [packed_weights], c
+    dn = n//nlim*n//rlim
+
+    return packed_items[:nlim], [packed_weights[:nlim]], [c//dn]
 
 def solve(num_items, capacity, items):
     """Solves the knapsack instance using the heuristic function."""
@@ -97,10 +102,14 @@ def solve(num_items, capacity, items):
     s = 0
     c = capacity
     # print(choose)
+    # print(items[:,:])
+    # print(c)
     for i in range(num_items):
         s += items[i][0]*choose[i]
         c -= items[i][1]*choose[i]
-        assert c>=0
+        # print(c,choose[i])
+        # assert c>=0
+        if (c<0): return s-items[i][0]*choose[i]
     return s
 
 if __name__ == "__main__":
@@ -122,18 +131,30 @@ if __name__ == "__main__":
     #     generate_datasets()
     
     if mood == 'train' or True:
-        objs = []
-        for dataname in sorted(listdir(basepath))[:50]:
-            data_path = path.join(basepath, dataname)
-            values, weights, capacities = read_knapsack_file(data_path)
-            values = np.expand_dims(values,axis=0)
-            weights = np.array(weights)
-            items = np.concatenate([values, weights], axis = 0).T
-            n = items.shape[0]
-            obj = solve(n, capacities, items)
-            objs.append(obj)
+        div = [50, 80, 100, 125, 200, 250, 400, 500, 625, 1000]
+        res = []
+        for nlim in div:
+            for rlim in div:
+                objs = []
+                for dataname in sorted(listdir(basepath))[:3]:
+                    data_path = path.join(basepath, dataname)
+                    values, weights, capacities = read_knapsack_file(data_path, nlim, rlim)
+
+                    solver.init(values, weights, capacities)
+                    computed_value = solver.solve()
+
+                    capacities = capacities[0]
+                    values = np.expand_dims(values,axis=0)
+                    weights = np.array(weights)
+                    items = np.concatenate([values, weights], axis = 0).T
+                    n = items.shape[0]
+                    obj = solve(n, capacities, items)
+
+                    objs.append(obj/(computed_value+1e-8))
+                value = np.mean(objs)
+                res.append(value)
         print("[*] Average:")
-        print(np.mean(objs))
+        print(" ".join([str(v) for v in res]))
             
     
     else:

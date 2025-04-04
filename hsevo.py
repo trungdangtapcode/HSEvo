@@ -6,6 +6,8 @@ from datetime import datetime
 from utils.utils import *
 from baselines.reevo.gls_tsp_adapt.gls_tsp_eval import Sandbox
 
+# import resource
+# import os
 
 class HSEvo:
     def __init__(self, cfg, root_dir) -> None:
@@ -27,6 +29,7 @@ class HSEvo:
         self.lst_bad_reflection = []
 
         self.problem = self.cfg.problem.problem_name
+        self.isQD = self.problem.startswith("QD")
         self.problem_desc = self.cfg.problem.description
         self.problem_size = self.cfg.problem.problem_size
         self.func_name = self.cfg.problem.func_name
@@ -280,8 +283,10 @@ class HSEvo:
                     continue
 
                 stdout_filepath = individual["stdout_filepath"]
+                # print(stdout_filepath)
                 with open(stdout_filepath, 'r') as f:  # read the stdout file
                     stdout_str = f.read()
+                print('stdout:',stdout_str)
                 traceback_msg = filter_traceback(stdout_str)
 
                 if traceback_msg == '':  # If execution has no error
@@ -295,6 +300,7 @@ class HSEvo:
                 else:  # Otherwise, also provide execution traceback error feedback
                     population[response_id] = self.mark_invalid_individual(population[response_id], traceback_msg)
 
+                exit(0)
             if hs_try_idx is None:
                 logging.info(
                     f"Iteration {self.iteration}, response_id {response_id}: Objective value: {individual['obj']}")

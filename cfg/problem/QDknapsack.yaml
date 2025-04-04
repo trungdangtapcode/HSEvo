@@ -1,0 +1,6 @@
+problem_name: QDknapsack
+problem_type: constructive
+obj_type: max
+problem_size: 10000
+func_name: heuristics
+description: Solving the Knapsack Problem with heuristics. The goal is to maximize total value within a weight limit by selecting items based on strategies. Trying explore new method because of divesity.
