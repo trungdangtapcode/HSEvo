@@ -94,27 +94,52 @@ def multi_chat_completion(messages_list: list[list[dict]], n, model, temperature
     contents: list[str] = []
     for choice in choices:
         for c in choice:
+            # print("CHOICE: ",c)
             contents.append(c.message.content)
     return contents
 
+import requests
+import time
 
+OLLAMA_API_URL = "https://36c7-34-169-51-211.ngrok-free.app/api/chat"  # Ollama runs locally by default
+from types import SimpleNamespace
+def dict_to_object(dictionary):
+    return SimpleNamespace(**{k: dict_to_object(v) if isinstance(v, dict) else v for k, v in dictionary.items()})
 def chat_completion(n: int, messages: list[dict], model: str, temperature: float) -> list[dict]:
     """
-    Generate n responses using OpenAI Chat Completions API
+    Generate n responses using the Ollama API.
     """
+    responses = []  # Store multiple responses
+    model = 'llama3.1:8b'
+    
+    for i in range(n):
+            payload = {
+                "model": model,
+                "messages": messages,  # Extract latest user message
+                "stream": False,
+                "options": {
+                    "temperature": temperature
+                }
+            }
 
-    for attempt in range(30):
-        try:
-            response_cur = completion(model=model, messages=messages, temperature=temperature, n=n)
-            break
-        except Exception as e:
-            logging.info(f"Attempt {attempt + 1} failed with error: {e}")
-            time.sleep(3)
-    if response_cur is None:
-        logging.info("Code terminated due to too many failed attempts!")
-        exit()
+            response = requests.post(OLLAMA_API_URL, json=payload)
+            response_json = response.json()
 
-    return response_cur.choices
+            x = response_json['message']['content']
+            responses.append(x)
+
+    if not responses:
+        print("Code terminated due to too many failed attempts!")
+
+    print("HII")
+    
+    returnvalue = [{
+            'message':{
+                'role':'assistant',
+                'content': x
+            }
+        } for x in responses]
+    return [dict_to_object(x) for x in returnvalue]
 
 
 def extract_code_from_generator(content):
