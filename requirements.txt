@@ -32,3 +32,5 @@ autopep8
 ortools
 
 matplotlib
+imageio
+tqdm

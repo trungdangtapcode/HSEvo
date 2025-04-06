@@ -101,7 +101,7 @@ def multi_chat_completion(messages_list: list[list[dict]], n, model, temperature
 import requests
 import time
 
-OLLAMA_API_URL = "https://177a-35-247-17-24.ngrok-free.app/api/chat"  # Ollama runs locally by default
+OLLAMA_API_URL = "https://6144-34-169-127-93.ngrok-free.app/api/chat"  # Ollama runs locally by default
 from types import SimpleNamespace
 def dict_to_object(dictionary):
     return SimpleNamespace(**{k: dict_to_object(v) if isinstance(v, dict) else v for k, v in dictionary.items()})
@@ -110,7 +110,7 @@ def chat_completion(n: int, messages: list[dict], model: str, temperature: float
     Generate n responses using the Ollama API.
     """
     responses = []  # Store multiple responses
-    model = 'llama3.1:8b'
+    model = 'llama3'
     
     for i in range(n):
             payload = {

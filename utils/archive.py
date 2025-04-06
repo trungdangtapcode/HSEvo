@@ -5,6 +5,8 @@ import random
 from .heap import LimitedHeap
 from datetime import datetime
 import os
+import matplotlib
+matplotlib.use('Agg')  # Use non-GUI backend
 
 class MAPElitesArchive:
     def __init__(self, feature_dims, bins_per_dim):
@@ -126,7 +128,7 @@ class MAPElitesArchive:
         """print elites (dim=2)"""
         print(self.archive)
     
-    def save_img(self):
+    def save_img(self, folder_savepath = None, title = None):
         """save img of archive (dim=2)"""
         def get_fitness(x, y):
             entry = self.archive[x, y]
@@ -137,18 +139,24 @@ class MAPElitesArchive:
         x = np.arange(self.bins_per_dim[0]) 
         y = np.arange(self.bins_per_dim[1])
         X, Y = np.meshgrid(x, y)
-        Z = np.clip(-np.vectorize(get_fitness)(X, Y),-10,10)
-        plt.contourf(X, Y, Z)
+        Z = np.clip(-np.vectorize(get_fitness)(X, Y),-0.5,1)
+        plt.contourf(X, Y, Z, levels = np.linspace(-0.5, 1, 11))
         # plt.imshow(self.archive)
         plt.colorbar()
+        if (title is not None):
+            plt.title(title)
 
-        current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+        current_time = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
         savepath = os.path.join(os.path.abspath(__file__),'..','..', "outputs", "plots", f"plot_{current_time}.png")
+        if (folder_savepath is not None):
+            savepath = os.path.join(folder_savepath, f"plot_{current_time}.png")
         plt.savefig(savepath)
         plt.close()  # Optional: closes the current figure to free memory
         
         # plt.show()
-    
+        # import time 
+        # print(f"[*] Archive saved to {savepath}")
+        # time.sleep(0.1)
 
     def __getitem__(self, idx):
         """Access a specific cell of the archive."""

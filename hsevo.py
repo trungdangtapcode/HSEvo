@@ -121,6 +121,7 @@ class HSEvo:
         code = extract_code_from_generator(self.seed_func).replace("v1", "v2")
         logging.info("Seed function code: \n" + code)
         seed_ind = {
+            "file_name": "seed.py",
             "stdout_filepath": f"problem_iter{self.iteration}_stdout0.txt",
             "code_path": f"problem_iter{self.iteration}_code0.py",
             "code": code,
@@ -200,6 +201,7 @@ class HSEvo:
             "response_id": response_id,
             "tryHS": False,
             "behavior": get_behavior(code) if self.isQD else None,
+            "file_name": file_name,
         }
         return individual
 
@@ -312,6 +314,7 @@ class HSEvo:
                     population[response_id] = self.mark_invalid_individual(population[response_id], traceback_msg)
 
                 # print("CWD:",os.getcwd())
+                assert "file_name" in individual, "file_name not in individual"
                 self.archive.add(individual, individual["obj"], individual["behavior"]) if self.isQD else None
                 # exit(0)
             if hs_try_idx is None:
@@ -332,6 +335,8 @@ class HSEvo:
 
         with open(self.output_file, 'w') as file:
             file.writelines(individual["code"] + '\n')
+
+        logging.info(f"Code path: {individual['file_name']}")
 
         # Execute the python file with flags
         with open(individual["stdout_filepath"], 'w') as f:
@@ -729,17 +734,22 @@ class HSEvo:
 
             self.save_log_population(self.population, False)
             # Harmony Search
-            try_hs_num = 3
-            while try_hs_num:
-                individual_hs = self.harmony_search()
-                if individual_hs is not None:
-                    self.population.extend([individual_hs])
-                    # self.update_iter()
-                    self.save_log_population([individual_hs], True)
-                    break
-                else:
-                    try_hs_num -= 1
+            # try_hs_num = 3
+            # while try_hs_num:
+            #     individual_hs = self.harmony_search()
+            #     if individual_hs is not None:
+            #         self.population.extend([individual_hs])
+            #         # self.update_iter()
+            #         self.save_log_population([individual_hs], True)
+            #         break
+            #     else:
+            #         try_hs_num -= 1
             self.update_iter()
-            self.archive.save_img()
+            # self.archive.save_img()
+            print(len(self.population))
+            for x in self.population:
+                print(x['code'])
+                print(x['exec_success'])
+
 
         return self.best_code_overall, self.best_code_path_overall

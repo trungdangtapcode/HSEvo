@@ -5,6 +5,7 @@ from os import path, listdir
 import gpt
 import inspect
 from ortools.algorithms.python import knapsack_solver
+from scipy.stats import hmean
 
 def get_heuristic_name(module, possible_names: list[str]):
     for func_name in possible_names:
@@ -75,17 +76,18 @@ def read_knapsack_file(filename):
 
     with open(filename, 'r') as f:
         f.readline()
-        n = int(f.readline().strip())  # Read number of items
+        n = int(f.readline().strip())//20  # Read number of items
         c = int(f.readline().strip())  # Read capacity
         f.readline()
         
         for line in f:
             p, w = map(int, line.split())
+            w //= 5
             packed_items.append(p)
             packed_weights.append(w)
             total_weight += w
 
-    return packed_items, [packed_weights], c
+    return packed_items[:n], [packed_weights[:n]], c//20//5
 
 def solve(num_items, capacity, items):
     """Solves the knapsack instance using the heuristic function."""
@@ -138,7 +140,7 @@ if __name__ == "__main__":
 
             objs.append(obj/(computed_value+1e-8))
         print("[*] Average:")
-        print(np.mean(objs))
+        print(hmean(objs))
             
     
     else:
