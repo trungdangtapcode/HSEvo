@@ -4,41 +4,49 @@ import math
 import scipy
 import torch
 def heuristics_v2(num_items: int, capacity: int, items: np.ndarray) -> np.ndarray:
-    """
-    Heuristic for the Knapsack Problem that balances density and value-per-weight ratios with capacity constraints.
-    
-    This function uses a combination of sparsification, prioritization, and greedy search to maximize total value within a weight limit.
-    
-    :param num_items: Number of items.
-    :param capacity: Total knapsack capacity.
-    :param items: A NumPy array containing item values and weights (num_items x 2).
-    :return: A NumPy array of the same length as the input lists, where each value is 0 or 1, indicating whether to take or not take the i-th item.
-    """
-    
-    # Calculate density for all items
-    densities = items[:, 0] / (items[:, 1] ** 2)
-    
-    # Sort items in descending order of their densities
-    ranking = np.argsort(-densities)
-    
-    res = [False] * num_items
-    
-    remaining_capacity = capacity
-    selected_items = []
-    
-    for i in range(num_items):
-        if not res[ranking[i]]:
-            if items[ranking[i], 1] <= remaining_capacity:
-                res[ranking[i]] = True
-                remaining_capacity -= items[ranking[i], 1]
-                selected_items.append(ranking[i])
-    
-    # Prioritize high-density items with high value-per-weight ratios
-    for i in range(num_items):
-        if not res[i]:
-            if densities[i] > np.mean(densities[selected_items]) and values_per_weight[i] > np.mean(values_per_weight[selected_items]):
-                if items[i, 1] <= remaining_capacity:
-                    res[i] = True
-                    remaining_capacity -= items[i, 1]
-    
-    return np.array(res)
+    # Sort items by value-to-weight ratio in descending order
+    ratios = items[:, 0] / items[:, 1]
+    sorted_indices = np.argsort(ratios)[::-1]
+    sorted_items = items[sorted_indices]
+
+    total_value = 0
+    total_weight = 0
+    res = [0] * num_items
+
+    # Sparsification: Ignore items that contribute minimally to overall utility based on density and value-to-weight ratio
+    threshold = np.percentile(sorted_items[:, 0], 20)  # adjust the percentile as needed
+    for i, (value, weight) in enumerate(sorted_items):
+        if value < threshold:
+            break
+
+        if total_weight + weight <= capacity:
+            total_weight += weight
+            total_value += value
+            res[sorted_indices[i]] = 1
+        else:
+            fraction = (capacity - total_weight) / weight
+            total_value += fraction * value
+            res[sorted_indices[i]] = fraction
+            break
+
+    # Fine-tuning based on remaining capacity, item density, and value-to-weight ratio
+    i += 1
+    while i < len(sorted_items) and total_weight + sorted_items[i][1] <= capacity:
+        if total_weight + sorted_items[i][1] > capacity / 2:  # consider fractional knapsack scenarios
+            fraction = (capacity - total_weight) / sorted_items[i][1]
+            total_value += fraction * sorted_items[i][0]
+            res[sorted_indices[i]] = fraction
+            break
+        else:
+            if sorted_items[i][0] > capacity - total_weight:  # prioritize high-value items
+                fraction = (capacity - total_weight) / sorted_items[i][1]
+                total_value += fraction * sorted_items[i][0]
+                res[sorted_indices[i]] = fraction
+                break
+            else:
+                total_weight += sorted_items[i][1]
+                total_value += sorted_items[i][0]
+                res[sorted_indices[i]] = 1
+                i += 1
+
+    return np.array(res).astype(int)

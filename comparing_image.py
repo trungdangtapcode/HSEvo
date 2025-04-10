@@ -42,11 +42,11 @@ def create_side_by_side_gif(folder1_path, folder2_path, output_gif_path):
         frames.append(new_img)
     
     # Save as GIF
-    imageio.mimsave(output_gif_path, frames, duration=0.15)  # 0.5 seconds per frame
+    imageio.mimsave(output_gif_path, frames[::], fps=30)  # 0.5 seconds per frame
 
 # Example usage
-folder2_path = 'outputs/plots/offline/20250409_005158 (44iter me eval2 hmean)'
-folder1_path = 'outputs/plots/offline/20250408_234401 (kaggle 80i mean)'
-output_gif_path = 'output.gif'
+folder2_path = 'outputs/plots/offline/20250410_062346 (81iter me eval2 hmean)'
+folder1_path = 'outputs/plots/offline/20250409_234132 (kaggle hmean eval1)'
+output_gif_path = 'output2.gif'
 
 create_side_by_side_gif(folder1_path, folder2_path, output_gif_path)

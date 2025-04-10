@@ -100,10 +100,12 @@ def solve(num_items, capacity, items):
     c = capacity
     # print(choose)
     for i in range(num_items):
-        s += items[i][0]*choose[i]
-        c -= items[i][1]*choose[i]
+        s += items[i][0]*(choose[i]!=0)
+        c -= items[i][1]*(choose[i]!=0)
         assert c>=0
-    return s
+    return s, choose
+
+# from ortools.algorithms import pywrapknapsack_solver
 
 if __name__ == "__main__":
     print("[*] Running ...")
@@ -136,9 +138,17 @@ if __name__ == "__main__":
             weights = np.array(weights)
             items = np.concatenate([values, weights], axis = 0).T
             n = items.shape[0]
-            obj = solve(n, capacities, items)
+            obj, my_choose = solve(n, capacities, items)
 
             objs.append(obj/(computed_value+1e-8))
+
+            # ortool_choose = [solver.best_solution_contains(i) for i in range(n)]
+            # print(my_choose)
+            # print('============')
+            # print(ortool_choose)
+
+            # print(obj, computed_value,obj/(computed_value+1e-8), solver.is_solution_optimal())
+            # break
         print("[*] Average:")
         print(hmean(objs))
             

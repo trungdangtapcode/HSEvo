@@ -283,7 +283,7 @@ def count_logical_nodes_and_complexity(code: str):
 
     total_nodes, complexity = traverse(root_node)
     # Base complexity is 1
-    return (total_nodes/500, (complexity + 1)/15)
+    return (total_nodes/600, (complexity + 1)/15)
 
 
 def remove_comments_and_docstrings(code):

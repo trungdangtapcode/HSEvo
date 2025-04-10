@@ -385,6 +385,7 @@ class HSEvo:
         else:
             population = [individual for individual in population if individual["exec_success"]]
         if len(population) < 2:
+            logging.info("Population is too small for selection.")
             return None
         trial = 0
         while len(selected_population) < 2 * self.cfg.pop_size:
@@ -716,7 +717,8 @@ class HSEvo:
             # Crossover
             crossed_population = self.crossover(selected_population, two_elists=np.random.rand() < 0.5)
             # Evaluate
-            self.population = self.evaluate_population(crossed_population)
+            self.population.extend(self.evaluate_population(crossed_population)) # avoid all inf population (elite sucks)
+            # self.population = self.evaluate_population(crossed_population)
             # Update
             self.update_iter()
 

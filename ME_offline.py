@@ -9,6 +9,7 @@ folder_path = "outputs/main/hsevo_QDknapsack_2025-04-08_18-41-04" #me good (17it
 folder_path = "outputs/main/hsevo_knapsack_2025-03-29_14-03-32" #kaggle best on me
 folder_path = "outputs/main/hsevo_QDknapsack_2025-04-08_22-07-57" #mine (30iter) on me
 folder_path = "outputs/main/hsevo_QDknapsack_2025-04-08_23-50-02" #mine (44iter) on me
+folder_path = "outputs/main/hsevo_QDknapsack_2025-04-09_20-51-42" #kaggle (81iter) on me, qwen
 
 # Regex pattern to extract iter and response numbers
 pattern = re.compile(r"problem_iter(\d+)_response(\d+)\.txt")
@@ -32,11 +33,11 @@ from utils.utils import *
 OUTPUT_PATH = os.path.join(os.path.abspath(__file__),"..","outputs","plots","offline")
 
 
-archive = MAPElitesArchive(2,10)
+archive = MAPElitesArchive(2,15)
 
 from datetime import datetime
 current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-# os.mkdir(os.path.join(OUTPUT_PATH, current_time))
+os.mkdir(os.path.join(OUTPUT_PATH, current_time))
 OUTPUT_PATH = os.path.join(OUTPUT_PATH, current_time)
 
 
@@ -110,6 +111,8 @@ def run_code(individual: dict) -> subprocess.Popen:
 # Loop through sorted files
 
 cnt = 0
+max_score = 100
+z = 0
 
 for iter_num, response_num, filename in files[:]:
     # print(f"Processing: {filename} (iter={iter_num}, response={response_num})")
@@ -132,11 +135,18 @@ for iter_num, response_num, filename in files[:]:
     evaluate2(individual)
     cnt += 1
     archive.add(individual, individual['obj'], behavior)
-    # archive.save_img(title=f"num individuals: {cnt}", folder_savepath=OUTPUT_PATH)
+    # archive.save_img(title=f"(ME) num individuals: {cnt}", folder_savepath=OUTPUT_PATH)
     
 
     print(individual["obj"], behavior)
+    if (individual['obj'] < max_score):
+        max_score = individual['obj']
+        print("Best score: ", max_score)
+        z = code
     # break
+print(z)
+
+exit(0)
 
 z = 0
 for i in range(len(archive.get_elites())):
