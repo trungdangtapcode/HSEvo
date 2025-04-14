@@ -73,21 +73,23 @@ def read_knapsack_file(filename):
     packed_items = []
     packed_weights = []
     total_weight = 0
+    n_scale = 1
+    w_scale = 1
 
     with open(filename, 'r') as f:
         f.readline()
-        n = int(f.readline().strip())//20  # Read number of items
+        n = int(f.readline().strip())//n_scale  # Read number of items
         c = int(f.readline().strip())  # Read capacity
         f.readline()
         
         for line in f:
             p, w = map(int, line.split())
-            w //= 5
+            w //= w_scale
             packed_items.append(p)
             packed_weights.append(w)
             total_weight += w
 
-    return packed_items[:n], [packed_weights[:n]], c//20//5
+    return packed_items[:n], [packed_weights[:n]], c//n_scale//w_scale
 
 def solve(num_items, capacity, items):
     """Solves the knapsack instance using the heuristic function."""
@@ -127,7 +129,7 @@ if __name__ == "__main__":
     
     if mood == 'train' or True:
         objs = []
-        for dataname in sorted(listdir(basepath))[:50]:
+        for dataname in sorted(listdir(basepath))[:5]:
             data_path = path.join(basepath, dataname)
             values, weights, capacities = read_knapsack_file(data_path)
 

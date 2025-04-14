@@ -48,7 +48,7 @@ def extract_description(response: str) -> tuple[str, str]:
     return desc_string
 
 
-def multi_chat_completion(messages_list: list[list[dict]], n, model, temperature):
+def multi_chat_completion(messages_list: list[list[dict]], n, model, temperature, isMultiLLM = False):
     """
     An example of messages_list:
 
@@ -88,7 +88,7 @@ def multi_chat_completion(messages_list: list[list[dict]], n, model, temperature
         num_workers = 2
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
-        args = [(n, messages, model, temperature) for messages in messages_list]
+        args = [(n, messages, model, temperature, isMultiLLM) for messages in messages_list]
         choices = executor.map(lambda p: chat_completion(*p), args)
 
     contents: list[str] = []
@@ -105,12 +105,15 @@ OLLAMA_API_URL = "https://6144-34-169-127-93.ngrok-free.app/api/chat"  # Ollama 
 from types import SimpleNamespace
 def dict_to_object(dictionary):
     return SimpleNamespace(**{k: dict_to_object(v) if isinstance(v, dict) else v for k, v in dictionary.items()})
-def chat_completion(n: int, messages: list[dict], model: str, temperature: float) -> list[dict]:
+import numpy as np
+def chat_completion(n: int, messages: list[dict], model: str, temperature: float, isMultiLLM) -> list[dict]:
     """
     Generate n responses using the Ollama API.
     """
     responses = []  # Store multiple responses
     model = 'llama3'
+    if (isMultiLLM):
+        model = 'llama3' if np.random.rand() < 0.5 else 'qwen2.5-coder'
     
     for i in range(n):
             payload = {
