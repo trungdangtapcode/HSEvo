@@ -27,3 +27,8 @@ hmcr: 0.7
 par: 0.5
 bandwidth: 0.2
 max_iter: 5
+
+
+me_co_rate: 0.5
+me_mu_rate: 0.7
+isMultipleLLM: False

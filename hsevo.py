@@ -1,3 +1,4 @@
+# %%writefile hsevo.py
 import subprocess
 import numpy as np
 import json
@@ -40,6 +41,7 @@ class HSEvo:
         self.func_name = self.cfg.problem.func_name
         self.obj_type = self.cfg.problem.obj_type
         self.problem_type = self.cfg.problem.problem_type
+        self.isMultipleLLM = self.cfg.isMultipleLLM
 
         logging.info("Problem: " + self.problem)
         logging.info("Problem description: " + self.problem_desc)
@@ -166,7 +168,7 @@ class HSEvo:
             with open(file_name, 'w') as file:
                 file.writelines(json.dumps(pre_messages))
 
-        responses = multi_chat_completion(messages_lst, 1, self.cfg.model, self.cfg.temperature + 0.3, isMultiLLM = self.isQD)
+        responses = multi_chat_completion(messages_lst, 1, self.cfg.model, self.cfg.temperature + 0.3, isMultiLLM = self.isMultipleLLM)
         self.cal_usage_LLM(messages_lst, responses)
         '''responses = multi_chat_completion([messages], self.cfg.init_pop_size, self.cfg.model,
                                           self.cfg.temperature + 0.3)  # Increase the temperature for diverse initial population'''
@@ -430,7 +432,7 @@ class HSEvo:
             logging.info("Flash reflection Prompt: \nSystem Prompt: \n" + system + "\nUser Prompt: \n" + user)
             self.print_flash_reflection_prompt = False
 
-        flash_reflection_res = multi_chat_completion([messages], 1, self.cfg.model, self.cfg.temperature, isMultiLLM = self.isQD)[0]
+        flash_reflection_res = multi_chat_completion([messages], 1, self.cfg.model, self.cfg.temperature, isMultiLLM = self.isMultipleLLM)[0]
         self.cal_usage_LLM([messages], flash_reflection_res)
         print(flash_reflection_res)
         analyze_start = flash_reflection_res.find("**Analysis:**") + len("**Analysis:**")
@@ -476,7 +478,7 @@ class HSEvo:
             logging.info("Comprehensive reflection Prompt: \nSystem Prompt: \n" + system + "\nUser Prompt: \n" + user)
             self.print_comprehensive_reflection_prompt = False
 
-        comprehensive_response = multi_chat_completion([messages], 1, self.cfg.model, self.cfg.temperature, isMultiLLM = self.isQD)[0]
+        comprehensive_response = multi_chat_completion([messages], 1, self.cfg.model, self.cfg.temperature, isMultiLLM = self.isMultipleLLM)[0]
         self.cal_usage_LLM([messages], comprehensive_response)
         self.str_comprehensive_memory = self.external_knowledge + '\n' + comprehensive_response
 
@@ -542,7 +544,7 @@ class HSEvo:
                 self.print_crossover_prompt = False
 
         # Asynchronously generate responses
-        response_lst = multi_chat_completion(messages_lst, 1, self.cfg.model, self.cfg.temperature, isMultiLLM = self.isQD)
+        response_lst = multi_chat_completion(messages_lst, 1, self.cfg.model, self.cfg.temperature, isMultiLLM = self.isMultipleLLM)
         self.cal_usage_LLM(messages_lst, response_lst)
         crossed_population = [self.response_to_individual(response, response_id) for response_id, response in
                               enumerate(response_lst)]
@@ -582,7 +584,7 @@ class HSEvo:
             self.print_mutate_prompt = False
 
         responses = multi_chat_completion([messages], int(self.cfg.pop_size * self.mutation_rate), self.cfg.model,
-                                          self.cfg.temperature, isMultiLLM = self.isQD)
+                                          self.cfg.temperature, isMultiLLM = self.isMultipleLLM)
         self.cal_usage_LLM([messages], responses)
         population = [self.response_to_individual(response, response_id) for response_id, response in
                       enumerate(responses)]
@@ -671,7 +673,7 @@ class HSEvo:
         with open(file_name, 'w') as file:
             file.writelines(json.dumps(pre_messages))
 
-        responses = multi_chat_completion([messages], 1, self.cfg.model, self.cfg.temperature, isMultiLLM = self.isQD)
+        responses = multi_chat_completion([messages], 1, self.cfg.model, self.cfg.temperature, isMultiLLM = self.isMultipleLLM)
         self.cal_usage_LLM([messages], [str(responses[0])])
 
         logging.info("LLM Response for HS step: " + str(responses[0]))
@@ -715,7 +717,7 @@ class HSEvo:
             curr_code_path = self.elitist["code_path"]
 
             # Crossover
-            crossed_population = self.crossover(selected_population, two_elists = (np.random.rand() < 0.5) and self.isQD)
+            crossed_population = self.crossover(selected_population, two_elists = (np.random.rand() < self.cfg.me_co_rate) and self.isQD)
             # Evaluate
             self.population.extend(self.evaluate_population(crossed_population)) # avoid all inf population (elite sucks)
             # self.population = self.evaluate_population(crossed_population)
@@ -723,7 +725,7 @@ class HSEvo:
             self.update_iter()
 
             # Mutate
-            mutated_population = self.mutate((np.random.rand() < 0.7) and self.isQD)
+            mutated_population = self.mutate((np.random.rand() < self.cfg.me_mu_rate) and self.isQD)
             # Evaluate
             self.population.extend(self.evaluate_population(mutated_population))
             # Update
@@ -753,9 +755,11 @@ class HSEvo:
             self.update_iter()
             # self.archive.save_img()
             print('num population: ',len(self.population))
+            print('rate ME',self.cfg.me_mu_rate, self.cfg.me_co_rate)
             for x in self.population:
                 # print(x['code'])
-                print(x['exec_success'])
+                # print(x['exec_success'])
+                pass
 
 
         return self.best_code_overall, self.best_code_path_overall
