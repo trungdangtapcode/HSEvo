@@ -1,0 +1,5 @@
+- Introduce sparsification by ignoring items that contribute minimally to overall utility.
+- Incorporate additional features such as remaining capacity and item density.
+- Try using the search algorithm and be careful because time and memory are limited with the size of input (time limit is 10 seconds).
+- Try using greedy algorithm if the input size too large (the time limit is 10 seconds)
+- Try using the optimize algorithm that fit the constraint with the time limit is 10 seconds

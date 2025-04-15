@@ -33,7 +33,7 @@ class HSEvo:
         self.problem = self.cfg.problem.problem_name
         self.isQD = self.problem.startswith("QD")
         if self.isQD:
-            self.archive = MAPElitesArchive(2, 10)
+            self.archive = MAPElitesArchive(2, 15)
             pass
         self.problem_desc = self.cfg.problem.description
         self.problem_size = self.cfg.problem.problem_size
@@ -736,21 +736,25 @@ class HSEvo:
 
             self.save_log_population(self.population, False)
             # Harmony Search
-            # try_hs_num = 3
-            # while try_hs_num:
-            #     individual_hs = self.harmony_search()
-            #     if individual_hs is not None:
-            #         self.population.extend([individual_hs])
-            #         # self.update_iter()
-            #         self.save_log_population([individual_hs], True)
-            #         break
-            #     else:
-            #         try_hs_num -= 1
+            if not self.isQD:
+                try_hs_num = 3
+                while try_hs_num:
+                    try: 
+                        individual_hs = self.harmony_search()
+                        if individual_hs is not None:
+                            self.population.extend([individual_hs])
+                            # self.update_iter()
+                            self.save_log_population([individual_hs], True)
+                            break
+                        else:
+                            try_hs_num -= 1
+                    except:
+                        try_hs_num -= 1
             self.update_iter()
             # self.archive.save_img()
-            print(len(self.population))
+            print('num population: ',len(self.population))
             for x in self.population:
-                print(x['code'])
+                # print(x['code'])
                 print(x['exec_success'])
 
 
