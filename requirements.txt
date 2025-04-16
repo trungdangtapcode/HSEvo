@@ -34,3 +34,4 @@ ortools
 matplotlib
 imageio
 tqdm
+python-dotenv

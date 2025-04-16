@@ -6,7 +6,11 @@ import concurrent.futures
 import time
 import re
 import inspect
+from dotenv import load_dotenv
+from os.path import join, dirname
 
+dotenv_path = join(dirname(__file__),'..', '.env')
+load_dotenv(dotenv_path)
 
 def file_to_string(filename):
     with open(filename, 'r') as file:
@@ -102,7 +106,9 @@ def multi_chat_completion(messages_list: list[list[dict]], n, model, temperature
 import requests
 import time
 
-OLLAMA_API_URL = "https://e445-34-81-216-6.ngrok-free.app/api/chat"  # Ollama runs locally by default
+OLLAMA_API_URL = os.environ.get("OLLAMA_API_URL")
+print("OLLAMA URL:",OLLAMA_API_URL)
+# OLLAMA_API_URL = "https://bfdb-34-23-111-246.ngrok-free.app/api/chat"  # Ollama runs locally by default
 from types import SimpleNamespace
 def dict_to_object(dictionary):
     return SimpleNamespace(**{k: dict_to_object(v) if isinstance(v, dict) else v for k, v in dictionary.items()})
