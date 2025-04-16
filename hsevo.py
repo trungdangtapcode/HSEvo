@@ -738,7 +738,7 @@ class HSEvo:
 
             self.save_log_population(self.population, False)
             # Harmony Search
-            if not self.isQD:
+            if self.cfg.use_hs:
                 try_hs_num = 3
                 while try_hs_num:
                     try: 
