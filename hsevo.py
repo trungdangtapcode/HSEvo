@@ -32,7 +32,8 @@ class HSEvo:
         self.lst_bad_reflection = []
 
         self.problem = self.cfg.problem.problem_name
-        self.isQD = self.problem.startswith("QD")
+        # self.isQD = self.problem.startswith("QD")
+        self.isQD = self.cfg.is_QD
         if self.isQD:
             self.archive = MAPElitesArchive(2, 15)
             pass

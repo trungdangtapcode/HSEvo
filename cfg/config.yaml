@@ -32,3 +32,5 @@ use_hs: True
 me_co_rate: 0.5
 me_mu_rate: 0.7
 isMultipleLLM: False
+
+is_QD: False
